@@ -39,13 +39,29 @@ const optionDefinitions: IOptionDefinition[] = [
     type: String,
     description: 'Location where you want to save the output files. If not supplied, use the input folder.',
   },
+  {
+    name: 'concat',
+    alias: 'c',
+    type: String,
+    description: 'Concats all files and removes duplicated type definitions. Stores to specified location. Ignores outFolder.'
+  },
 ];
+
 const options = commandLineArgs(optionDefinitions) as {
   input: string[];
+  concat?: string;
   verbose?: boolean;
   outFolder?: string;
   help: boolean;
 };
+
+const writeAvroFile = (outFile:string, buffer:string[]) => {
+  const result = buffer.join('\n').replace(/\t/g, '  ');
+  fs.writeFileSync(outFile, result, 'UTF8');
+  if (options.verbose) {
+    console.log(`${result} is written to ${outFile}.`);
+  }
+}
 
 const sections = [
   {
@@ -80,6 +96,10 @@ const sections = [
         desc: '04. Convert all schemas in a folder to an interface, also displaying the output',
         example: '$ avro-typescript-converter -v example/',
       },
+      {
+        desc: '0.5 Convert all schemas into a single file name avro.ts',
+        example: '$ avro-typescript-converter -i avro-files/ -c avro.ts'
+      }
     ],
   },
 ];
@@ -96,16 +116,21 @@ const convert = () => {
   }
   options.input.forEach(input => {
     const validInputFiles = getFilesFromInput(input);
+    const preventDuplicatedRecords = !!options.concat;
+    let buffer:string[] = [];
     validInputFiles.forEach(input => {
         const schemaText = fs.readFileSync(input, 'UTF8');
         const schema = JSON.parse(schemaText) as RecordType;
         const outFile = `${path.basename(input, path.extname(input))}.ts`;
-        const result = avroToTypeScript(schema as RecordType).replace(/\t/g, '  ');
-        fs.writeFileSync(path.join(outFolder, outFile), result, 'UTF8');
-        if (options.verbose) {
-          console.log(`${result} is written to ${outFile} in ${outFolder}.`);
+        avroToTypeScript(schema as RecordType, buffer, preventDuplicatedRecords);
+        if (!options.concat) {
+          writeAvroFile(path.join(outFolder, outFile), buffer);
+          buffer = [];
         }
     });
+    if (options.concat) {
+      writeAvroFile(options.concat, buffer);
+    }
   });
 }
 

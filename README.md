@@ -10,6 +10,7 @@ Based on [avro-typescript](https://github.com/joewood/avro-typescript), but with
 - Fixed array types with union arrays
 - Uses the recommended naming convention for interfaces (IMyName)
 - Added documentation from schema to output
+- Optional concatenation to single file
 
 ## Installation
 
