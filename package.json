@@ -1,5 +1,5 @@
 {
-  "name": "avro-typescript-converter",
+  "name": "@something.technology/avro-typescript-converter",
   "version": "0.3.0",
   "description": "Convert an AVRO schema to a TypeScript interface.",
   "main": "dist/src/index.js",
