@@ -24,8 +24,13 @@ jobs:
         run: yarn install --frozen-lockfile
       - name: Build
         run: yarn build
+      - name: Use NPM Token
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: echo //registry.npmjs.org/:_authToken=${NPM_TOKEN} > .npmrc
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx semantic-release
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
